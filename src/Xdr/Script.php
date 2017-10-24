@@ -73,11 +73,11 @@ trait Script
 
     protected function parserScript(Context $context)
     {
-        $opEnd = $this->parseIndex + $context->getSummary('length');
-        for (;$this->parseIndex < $opEnd;) {
-            $context->addOperation($this->parserOperation());
+        $end = $this->parseIndex + $context->getSummary('length');
+        for (; $this->parseIndex < $end;) {
+            $context->addOperation($this->parseIndex, $this->parserOperation());
         }
-        $this->parseIndex = $opEnd;
+        $this->parseIndex = $end;
     }
 
     protected function parserSrcNodes(Context $context)
@@ -177,7 +177,11 @@ trait Script
     public function XDRScript()
     {
         $context = new Context();
+        $index = count($this->contexts);
         $this->contexts[] = $context;
+        $context->index = $index;
+        $this->parseScriptIndex = $index;
+        $context->decompile = $this;
         $this->parserHeader($context);
         $this->parserScript($context);
         $this->parserSrcNodes($context);

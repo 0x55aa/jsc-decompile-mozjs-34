@@ -15,13 +15,18 @@ trait Operation
     public function parserOperation()
     {
         $op = Constant::_Opcode[$this->bytecodes[$this->parseIndex]];
-        $this->parseIndex++;
         $result = [
             'id' => $op['val'],
+            'name' => $op['op'],
+            'parserIndex' => $this->parseIndex,
             'params' => [],
+            'length' => $op['len'],
+            'image' => $op['image'],
             'push' => $op['def'],
             'pop' => $op['use'],
+            'isCover' => false,
         ];
+        $this->parseIndex++;
         switch ($op['op']) {
             case 'JSOP_ENTERWITH':
                 $result['params']['staticWithIndex'] = $this->bigEndian2Dec(4);
@@ -36,7 +41,7 @@ trait Operation
             case 'JSOP_CASE':
             case 'JSOP_DEFAULT':
             case 'JSOP_BACKPATCH':
-                $result['params']['offset'] = $this->bigEndian2Dec(4);
+                $result['params']['offset'] = $this->uInt32ToInt32($this->bigEndian2Dec(4));
                 break;
             case 'JSOP_CALL':
             case 'JSOP_FUNAPPLY':
@@ -106,13 +111,13 @@ trait Operation
                 $result['params']['staticBlockObjectIndex'] = $this->bigEndian2Dec(4);
                 break;
             case 'JSOP_TABLESWITCH':
-                $result['params']['len'] = $this->bigEndian2Dec(4);
-                $result['params']['low'] = $this->bigEndian2Dec(4);
-                $result['params']['high'] = $this->bigEndian2Dec(4);
+                $result['params']['len'] = $this->uInt32ToInt32($this->bigEndian2Dec(4));
+                $result['params']['low'] = $this->uInt32ToInt32($this->bigEndian2Dec(4));
+                $result['params']['high'] = $this->uInt32ToInt32($this->bigEndian2Dec(4));
                 $result['params']['offset'] = [];
                 $end = $result['params']['high'] - $result['params']['low'];
                 for ($i = 0; $i <= $end; $i++) {
-                    $result['params']['offset'][$i] = $this->bigEndian2Dec(4);
+                    $result['params']['offset'][$i] = $this->uInt32ToInt32($this->bigEndian2Dec(4));
                 }
                 break;
             case 'JSOP_ITER':
@@ -123,7 +128,7 @@ trait Operation
                 $result['params']['localno'] = $this->bigEndian2Dec(3);
                 break;
             case 'JSOP_INT8':
-                $result['params']['val'] = $this->bigEndian2Dec(1);
+                $result['params']['val'] = $this->uIntToInt($this->bigEndian2Dec(1), 8);
                 break;
             case 'JSOP_UINT16':
                 $result['params']['val'] = $this->bigEndian2Dec(2);
@@ -132,7 +137,7 @@ trait Operation
                 $result['params']['val'] = $this->bigEndian2Dec(3);
                 break;
             case 'JSOP_INT32':
-                $result['params']['val'] = $this->bigEndian2Dec(4);
+                $result['params']['val'] = $this->uInt32ToInt32($this->bigEndian2Dec(4));
                 break;
             case 'JSOP_NEWINIT':
                 $result['params']['kind'] = $this->bigEndian2Dec(1);
@@ -157,6 +162,7 @@ trait Operation
                 break;
             case 'JSOP_LOOPENTRY':
                 $result['params']['BITFIELD'] = $this->bigEndian2Dec(1);
+                $result['params']['depth'] = $result['params']['BITFIELD'] - 128;
                 break;
         }
         return $result;

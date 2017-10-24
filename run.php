@@ -13,19 +13,20 @@ $decompile->run();
 //$decompile->runResult();
 $contexts = $decompile->getContexts();
 foreach ($contexts as $index => $context) {
-    //if ($index==7) {
+    //if ($index==0) {
         echo '==================================' . $index . '==================================S', CLIENT_EOL;
         /* @var \Irelance\Mozjs34\Context $context */
         $context->printProperties([
-            'Summaries',
-            'Operations',
-            'Nodes',
-            'Atoms',
-            'Consts',
-            'Objects',
-            'Regexps',
-            'TryNote',
-            'ScopeNote',
+            //'Summaries',
+            //'Atoms',
+            //'Operations',
+            'Content',
+            //'Nodes',
+            //'Consts',
+            //'Objects',
+            //'Regexps',
+            //'TryNote',
+            //'ScopeNote',
         ]);
         echo '==========================================================================E', CLIENT_EOL;
     //}

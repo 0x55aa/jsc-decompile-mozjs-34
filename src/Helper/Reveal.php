@@ -13,8 +13,6 @@ use Irelance\Mozjs34\Constant;
 
 trait Reveal
 {
-    use Operation;
-
     public function printSummaries()
     {
         if (count($this->summaries)) {
@@ -29,16 +27,9 @@ trait Reveal
     public function printOperations()
     {
         echo '---------------Operations--------------', CLIENT_EOL;
-        foreach ($this->operations as $operation) {
-            /*if ($result = $this->printOperation($operation)) {
-                echo $result, CLIENT_EOL;
-            } else {
-                $op = Constant::_Opcode[$operation['id']];
-                echo $op['op'], ' ', $op['len'], ' ', $op['use'], ' ', $op['def'], ' :';
-                echo implode(', ', $operation['params']), CLIENT_EOL;
-            }*/
+        foreach ($this->operations as $key => $operation) {
             $op = Constant::_Opcode[$operation['id']];
-            echo $op['op'], json_encode($operation['params']), ' pop: ', $operation['pop'], ' push: ', $operation['push'], CLIENT_EOL;
+            echo '[', $key, ']', $op['op'], json_encode($operation['params']), ' pop: ', $operation['pop'], ' push: ', $operation['push'], ' byte: ', $operation['length'], CLIENT_EOL;
         }
         echo '---------------------------------------', CLIENT_EOL;
     }
@@ -65,8 +56,8 @@ trait Reveal
     {
         if (count($this->consts)) {
             echo '-----------------Consts----------------', CLIENT_EOL;
-            foreach ($this->consts as $const) {
-                echo $const['type'], ' : ', $const['value'], CLIENT_EOL;
+            foreach ($this->consts as $key => $const) {
+                echo $key, ' : [', $const['type'], ']', $const['value'], CLIENT_EOL;
             }
             echo '---------------------------------------', CLIENT_EOL;
         }
@@ -124,5 +115,32 @@ trait Reveal
                 $this->$call();
             }
         }
+    }
+
+    public function printContent()
+    {
+        foreach ($this->operations as $key => $operation) {
+            if (!$this->operations[$key]['isCover']) {
+                if ($this->isDebug) {
+                    echo $key, CLIENT_EOL;
+                }
+                $this->revealOperation($operation);
+                $this->operations[$key]['isCover'] = true;
+            }
+        }
+
+        ksort($this->storageScript);
+        $scriptKeys = array_keys($this->storageScript);
+        $scriptKeysCount = count($scriptKeys);
+        echo '----------------Content----------------', CLIENT_EOL;
+        for ($i = 0; $i < $scriptKeysCount; $i++) {
+            $script = $this->storageScript[$scriptKeys[$i]];
+            if ($this->isDebug) {
+                echo '[', $scriptKeys[$i] / 2, ']', $script['value'], CLIENT_EOL;
+            } else {
+                echo $script['value'], CLIENT_EOL;
+            }
+        }
+        echo '---------------------------------------', CLIENT_EOL;
     }
 }
